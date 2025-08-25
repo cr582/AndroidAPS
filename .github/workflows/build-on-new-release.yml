@@ -1,0 +1,35 @@
+name: Build AndroidAPS on New Release Tag
+
+on:
+  push:
+    tags:
+      - 'v*'        # Trigger bei neuen Tags wie v3.3.2.1
+  workflow_dispatch:  # Ermöglicht manuelles Auslösen
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java for Android
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          
+      - name: Run AAPS-CI Build
+        run: |
+          echo "Neuer Release-Tag erkannt: $GITHUB_REF"
+          echo "Starte AAPS-CI Build…"
+          
+        uses: ./.github/workflows/aaps-ci-build.yml
+        with:
+          variant: fullRelease
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          GDRIVE_OAUTH2: ${{ secrets.GDRIVE_OAUTH2 }}
