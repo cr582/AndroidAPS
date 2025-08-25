@@ -2,8 +2,8 @@ name: Sync with Upstream (Mirror)
 
 on:
   schedule:
-    - cron: "0 6 * * *"   # Täglich um 06:00 UTC (kannst du anpassen)
-  workflow_dispatch:       # Manuelles Auslösen möglich
+    - cron: "0 6 * * *"   # täglich um 06:00 UTC
+  workflow_dispatch:       # manuelles Auslösen möglich
 
 jobs:
   sync:
@@ -30,13 +30,15 @@ jobs:
 
       - name: Hard reset fork branch to upstream
         run: |
-          # Falls dein Default-Branch "main" statt "master" heißt, hier anpassen
-          git checkout master
+          git checkout master   # falls dein Default-Branch "main" ist, hier anpassen
           git reset --hard upstream/master
 
-      - name: Push branch + tags to fork
-        run: |
-          git push origin master --force
-          git push origin --tags --force
+      - name: Push branch + tags back to fork
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Remote origin neu setzen mit Token-Auth
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+          
+          git push origin master --force
+          git push origin --tags --force
