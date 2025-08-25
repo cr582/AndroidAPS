@@ -1,7 +1,8 @@
-name: Sync with Upstream
+name: Sync with Upstream (Mirror)
+
 on:
   schedule:
-    - cron: "0 6 * * *"   # Täglich um 06:00 UTC
+    - cron: "0 6 * * *"   # Täglich um 06:00 UTC (kannst du anpassen)
   workflow_dispatch:       # Manuelles Auslösen möglich
 
 jobs:
@@ -20,19 +21,22 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Add upstream remote
-        run: git remote add upstream https://github.com/MilosKozak/AndroidAPS.git
-
-      - name: Fetch upstream (including tags)
-        run: git fetch upstream --tags
-
-      - name: Merge upstream/master into fork/master
         run: |
+          git remote remove upstream || true
+          git remote add upstream https://github.com/MilosKozak/AndroidAPS.git
+
+      - name: Fetch upstream (branches + tags)
+        run: git fetch upstream --prune --tags
+
+      - name: Hard reset fork branch to upstream
+        run: |
+          # Falls dein Default-Branch "main" statt "master" heißt, hier anpassen
           git checkout master
-          git merge upstream/master || true
+          git reset --hard upstream/master
 
-      - name: Push changes + tags back to fork
+      - name: Push branch + tags to fork
         run: |
-          git push origin master
-          git push origin --tags
+          git push origin master --force
+          git push origin --tags --force
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
