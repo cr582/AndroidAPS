@@ -1,0 +1,39 @@
+ame: Sync with Upstream
+
+on:
+  schedule:
+    - cron: "0 6 * * *"   # Täglich um 06:00 UTC
+  workflow_dispatch:       # Manuelles Auslösen möglich
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: git remote add upstream https://github.com/MilosKozak/AndroidAPS.git
+
+      - name: Fetch upstream (including tags)
+        run: git fetch upstream --tags
+
+      - name: Merge upstream/master into fork/master
+        run: |
+          git checkout master
+          git merge upstream/master || true
+
+      - name: Push changes + tags back to fork
+        run: |
+          git push origin master
+          git push origin --tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
